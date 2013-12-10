@@ -13,30 +13,36 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
 
+import java.util.Timer;
+import java.util.TimerTask;
+//import java.util.concurrent.CountDownLatch;
 
-public class GameClient {
 
-    private final String host;
-    private final int port;
-	private static int ClientId;
-    
-    public GameClient(String host, int port, int id) {
-        this.host = host;
-        this.port = port;
-        GameClient.ClientId = id;
-    }
 
-    public void run() throws Exception {
+public class GameClient  extends Thread{
+
+    private static String host;
+    private static int port;
+	private static int clientId;
+	
+	private static int threadNum = 10; // maximum is 100
+	
+	public static int activeThreadNum = 0;
+
+
+    public void run() {
         EventLoopGroup group = new NioEventLoopGroup();
         try {
+        	GameClientInitializer gci = new GameClientInitializer();
+        	gci.ClientId = clientId++;
+        	System.err.println(gci.ClientId);
             Bootstrap b = new Bootstrap();
             b.group(group)
              .channel(NioSocketChannel.class)
-             .handler(new GameClientInitializer());
-            
-            GameClientInitializer.setClientId(getClientId());
+             .handler(gci);
 
             // Start the connection attempt.
             Channel ch = b.connect(host, port).sync().channel();
@@ -56,7 +62,8 @@ public class GameClient {
                 // If user typed the 'bye' command, wait until the server closes
                 // the connection.
                 if ("quit".equals(line.toLowerCase())) {
-                    ch.closeFuture().sync();
+                	ch.closeFuture().sync();
+                	activeThreadNum--;
                     break;
                 }
             }
@@ -65,7 +72,13 @@ public class GameClient {
             if (lastWriteFuture != null) {
                 lastWriteFuture.sync();
             }
-        } finally {
+        } catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} finally {
             group.shutdownGracefully();
         }
     }
@@ -80,19 +93,30 @@ public class GameClient {
         }
 
         // Parse options.
-        String host = args[0];
-        int port = Integer.parseInt(args[1]);
+        host = args[0];
+        port = Integer.parseInt(args[1]);
        
-        setClientId(Integer.parseInt(args[2]));
+        clientId = Integer.parseInt(args[2]);
+        
+        
+        for(int i = 0; i< threadNum; i++){
+        	new GameClient().start();        	
+        }
+        
+        
+    	// stop this program when all threads get 'quite'
+		final Timer timer = new Timer();
+		TimerTask task = new TimerTask() {
+			public void run() {
+				System.out.println(activeThreadNum);
+				if(activeThreadNum == 0){
+					System.exit(0);
+				}
+			}
+		};
 
-        new GameClient(host, port, getClientId()).run();
+		timer.schedule(task, 5000, 5000); // after 0s send massages for
+										// each 2s
+        
     }
-
-	public static int getClientId() {
-		return ClientId;
-	}
-
-	public static void setClientId(int clientId) {
-		ClientId = clientId;
-	}
 }

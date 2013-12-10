@@ -17,23 +17,28 @@ import java.util.TimerTask;
 @Sharable
 public class GameClientHandler extends SimpleChannelInboundHandler<String> {
 
-	private static int ClientId;
+	public int ClientId;
 
 	private static final Logger logger = Logger
 			.getLogger(GameClientHandler.class.getName());
 
-	private static int cmsgNum = 50; // the number of sent requests will be
+	private int cmsgNum = 50; // the total number of sent requests will be
 										// cmsgNum + 2
+	
+	private int MagTransFrequ = 2000; // massage transmission frequency
+	
 	private static double ProbOfSell = 0.6; // set the probability of "sell" in
 											// the massage
-	private static int count = 0;
+	private int count = 0;
+	
+	private boolean getQuitMag = false;
 
 	@Override
 	public void channelActive(final ChannelHandlerContext ctx) throws Exception {
 		// Send greeting for a new connection.
 		
 		// to make sure that the id will be sent there at first.
-		final ChannelFuture fst = ctx.writeAndFlush("id:" + getClientId()
+		final ChannelFuture fst = ctx.writeAndFlush("id:" + ClientId
 				+ "\r\n");// The id must start with id:
 		fst.addListener(new ChannelFutureListener() {
 
@@ -56,23 +61,31 @@ public class GameClientHandler extends SimpleChannelInboundHandler<String> {
         			public void run() {
         				if(count == 0){
         					cmsg = "start";
+        					GameClient.activeThreadNum++;
+        					count++;
         				}else if (count == cmsgNum + 1) {
         					cmsg = "quit";
-        					timer.cancel();
-        				} else
+        					
+        					// check if get the "quit" from server
+        					// it might cause massage missing
+        					MagTransFrequ = 10000;//reduce the frequency to 10s 
+//        					if(getQuitMag){
+            					timer.cancel();
+            					System.out.println("from Handle: There should no massage from " + ClientId);
+//        					}
+        					
+        				} else{
         					cmsg = generateInputMassage();
-
-        				count++;
+        					count++;
+        				}
+        					
         				// send massages to server
-        				ctx.writeAndFlush(getClientId() + ":" + cmsg + "\r\n");
-        				System.out.println(getClientId() + ":" + cmsg + "\r\n");
-        				// if ("quit".equals(cmsg)) {
-        				// timer.cancel();
-        				// }
+        				ctx.writeAndFlush(ClientId + ":" + cmsg + "\r\n");
+        				System.out.println(ClientId + ":" + cmsg + "\r\n");
         			}
         		};
 
-        		timer.schedule(task, 2000, 2000); // after 0s send massages for
+        		timer.schedule(task, 0, MagTransFrequ); // after 2s send massages for
         										// each 2s
 				
 			}
@@ -85,20 +98,25 @@ public class GameClientHandler extends SimpleChannelInboundHandler<String> {
 	public String generateInputMassage() {
 		double rd = Math.random();
 //		System.out.println(rd);
-		if (rd < ProbOfSell) // [0,10000)
+		if (rd < ProbOfSell)
 			return "sell";
 		else
 			return "get";
 	}
 
+	
 	@Override
 	protected void channelRead0(ChannelHandlerContext ctx, String msg)
 			throws Exception {
 		System.err.println(msg);
 
 		if ("quit".equals(msg)) {
+			getQuitMag = true;
 			ctx.close();
-			System.exit(0);
+			
+			// to inform main thread that this thread can be stopped
+			GameClient.activeThreadNum--;
+//			System.exit(0);// Problem while using multithreading here
 		}
 	}
 
@@ -109,13 +127,5 @@ public class GameClientHandler extends SimpleChannelInboundHandler<String> {
 				cause);
 		ctx.close();
 		System.exit(0);
-	}
-
-	public int getClientId() {
-		return ClientId;
-	}
-
-	public static void setClientId(int clientId) {
-		ClientId = clientId;
 	}
 }

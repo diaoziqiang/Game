@@ -36,6 +36,7 @@ public class GameServer {
 		
 		try{// Initialize the in-memory database H2			
 			cp = new InitH2().memoryMode();
+			cp.setMaxConnections(30); // default is 10
 			H2Accessor ha = new H2Accessor(cp);
 
 			long beginTime = System.currentTimeMillis();

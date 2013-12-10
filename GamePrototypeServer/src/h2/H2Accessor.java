@@ -18,10 +18,16 @@ public class H2Accessor {
 	public static int columnNum = 100; // column >= 2
 	public static String tableName = new String("TEST");
 
-	private static JdbcConnectionPool cp = null;
+	private static JdbcConnectionPool cp = null;// must be static
 
+	//instantiated by game server to generate a connection pool
 	public H2Accessor(JdbcConnectionPool cp) {
-		this.setCp(cp);
+		H2Accessor.cp = cp;
+	}
+	
+	//instantiated by ValidRequestHandler, when JdbcConnectionPool already exists
+	public H2Accessor() {
+		// TODO Auto-generated constructor stub
 	}
 
 	// create a table
@@ -30,7 +36,7 @@ public class H2Accessor {
 			System.err.println("Please do not set columnNum less than two!");
 			return false;
 		} else {
-			Connection conn = getCp().getConnection();
+			Connection conn = cp.getConnection();
 			Statement stmt = conn.createStatement();
 			try {
 				String order = "DROP TABLE IF EXISTS " + tableName
@@ -103,7 +109,7 @@ public class H2Accessor {
 
 		// check if this row already exists
 		if (selectOneRow(rowId, false)) {
-			System.out.println("This row " + rowId + " already exists in the table!");
+			System.out.println("The row " + rowId + " already exists in the table!");
 			return true;
 		} else {
 			try {
@@ -122,6 +128,9 @@ public class H2Accessor {
 
 				}
 				order = order + ");";
+				
+//				System.out.println(order);
+				
 				stmt.execute(order);
 
 				System.out.println("A new row with ID " + rowId
@@ -258,13 +267,5 @@ public class H2Accessor {
 			stmt.close();
 			conn.close();
 		}
-	}
-
-	public static JdbcConnectionPool getCp() {
-		return cp;
-	}
-
-	public void setCp(JdbcConnectionPool cp) {
-		H2Accessor.cp = cp;
 	}
 }

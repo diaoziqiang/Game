@@ -14,16 +14,15 @@ import io.netty.handler.codec.string.StringEncoder;
 public class GameClientInitializer extends ChannelInitializer<SocketChannel> {
     private static final StringDecoder DECODER = new StringDecoder();
     private static final StringEncoder ENCODER = new StringEncoder();
-    private static final GameClientHandler CLIENTHANDLER = new GameClientHandler();
-    private static int ClientId;
+    private final GameClientHandler CLIENTHANDLER = new GameClientHandler();
+    public int ClientId;
     @Override
     public void initChannel(SocketChannel ch) throws Exception {
     	
-    	GameClientHandler.setClientId(this.getClientId());
-    	
+    	CLIENTHANDLER.ClientId = ClientId;
         ChannelPipeline pipeline = ch.pipeline();
 
-        // Add the text line codec combination first,
+        // Add the text line code combination first,
         pipeline.addLast("framer", new DelimiterBasedFrameDecoder(
                 8192, Delimiters.lineDelimiter()));
         pipeline.addLast("decoder", DECODER);
@@ -34,12 +33,4 @@ public class GameClientInitializer extends ChannelInitializer<SocketChannel> {
         
         
     }
-    
-	public int getClientId() {
-		return ClientId;
-	}
-
-	public static void setClientId(int clientId) {
-		ClientId = clientId;
-	}
 }

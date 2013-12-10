@@ -10,15 +10,17 @@ import java.util.regex.Pattern;
 
 public class RequestSorter {
     
-    private static String welcmeRes = new String();
+    private String welcmeRes = "";
 
     // check the command from client.
-    static String checkCommand(String request) throws Exception {
+    public String checkCommand(String request) throws Exception {
             if (request.isEmpty()) {
                     return "ReqEmp";
             } else {
                     if (checkFormat("^(id:)[0-9]+", request.toLowerCase())) {
                             welcmeRes = "Sir, your id is " + request.substring(3, request.length()) + ".\r\n";
+
+//                        	System.out.println(request);
                             return "Welcome";
                     } else {
 
@@ -30,7 +32,7 @@ public class RequestSorter {
                                     		//even you create many instance of ValidRequestHandler, but they all share the static client id
                                             String req = splitResult[1];
                                             ValidRequestHandler vReq = new ValidRequestHandler();
-                                            vReq.setClientId(clientId);
+                                            vReq.ClientId = clientId;
                                             
                                             if (vReq.run(req.toLowerCase())){
                                                     switch (req.toLowerCase()) {
@@ -60,7 +62,7 @@ public class RequestSorter {
 
     
     // use Regular Expressions to check the format of the request
-    static boolean checkFormat(String p, String req) {
+    private boolean checkFormat(String p, String req) {
             Pattern pattern = Pattern.compile(p);
             Matcher matcher = pattern.matcher(req);
             return matcher.find();
@@ -68,13 +70,13 @@ public class RequestSorter {
 
     
     // check the validity of a client id
-    public static boolean checkClientId(String clientId) throws Exception {
+    private boolean checkClientId(String clientId) throws Exception {
             return checkFormat("^[0-9]{5}", clientId);
     }
 
     
     // set the reply message
-    static String setResponse(String request) throws Exception {
+    public String setResponse(String request) throws Exception {
             String response = new String();
 
             switch (request) {

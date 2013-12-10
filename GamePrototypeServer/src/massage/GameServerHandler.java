@@ -41,10 +41,10 @@ public class GameServerHandler extends SimpleChannelInboundHandler<String> {
 		// Generate and write a response.
 
 //		System.out.println(request);
+		RequestSorter rs = new RequestSorter();
+		String req = rs.checkCommand(request);
 
-		String req = new String(RequestSorter.checkCommand(request));
-
-		String response = new String(RequestSorter.setResponse(req));
+		String response = rs.setResponse(req);
 
 		// We do not need to write a ChannelBuffer here.
 		// We know the encoder inserted at TelnetPipelineFactory will do the

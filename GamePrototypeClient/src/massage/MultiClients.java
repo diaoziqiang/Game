@@ -16,15 +16,13 @@ public class MultiClients extends Thread {
 
 
 	
-	private static int ClientNum = 200;	// number of concurrent clients
+	private static int ClientNum = 50;	// number of concurrent processes. maximum is 100
 	private static int ClientId = 10000; // It could be 10000, 20000, 30000... and 90000.
 	
-	private int threadNumber;
-	private static int threadCount = ClientId;
+	private static int threadNumber = 0;
 	
 	public MultiClients() {
-		threadNumber = ++threadCount;
-		System.out.println("Connecting " + threadNumber);
+		System.out.println("Connecting " + threadNumber++);
 	}
 	
 	
@@ -34,9 +32,10 @@ public class MultiClients extends Thread {
 		//path=path+File.separator+"bin";
 //		System.out.println(path);
 		try {
-		ProcessBuilder pb = new ProcessBuilder("java","massage.GameClient","localhost","8080", String.valueOf(ClientId++));
+		ProcessBuilder pb = new ProcessBuilder("java","massage.GameClient","localhost","8080", String.valueOf(ClientId));
 		pb.directory(new File(path));
 		Process p = pb.start();
+		ClientId += 100;
 		
 		
 		// get output from single process (do not delete!!!!!!) 
@@ -71,8 +70,8 @@ public class MultiClients extends Thread {
 			}
 		};
 
-		timer.schedule(task, 0, 500); // after 0s send massages for
-										// each 2s
+		timer.schedule(task, 0, 1000); // after 0s send massages for
+										// each 1s
 		
 		System.out.println("All Threads Started");
 //		return;
