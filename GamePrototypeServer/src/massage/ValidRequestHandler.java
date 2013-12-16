@@ -36,7 +36,7 @@ public class ValidRequestHandler {
 	}
 
 	private boolean startGame() throws Exception {
-//		System.out.println(getClientId() + ": OK! Let's go!\r\n");
+		System.out.println(ClientId + ": OK! Let's go!\r\n");
 		ha.addSpecifiedRow(ClientId);
 		return true;
 	}
@@ -48,14 +48,14 @@ public class ValidRequestHandler {
 	}
 
 	private boolean sellItem() throws Exception {
-//		System.out.println(getClientId() + ": OK! I will do it!\r\n");
+		System.out.println(ClientId + ": OK! I will do it!\r\n");
 		ha.updateColumn(ClientId, "NAME", "AK");
 		return true;
 	}
 
 	private boolean quitGame() throws Exception {
-//		ha.selectOneRow(getClientId());
 		System.out.println(ClientId + ": Have a good day!\r\n");
+//		ha.selectOneRow(ClientId,true);
 		return true;
 	}
 

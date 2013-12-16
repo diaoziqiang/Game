@@ -16,10 +16,10 @@ public class MultiClients extends Thread {
 
 
 	
-	private static int ClientNum = 50;	// number of concurrent processes. maximum is 100
+	private static int ClientNum = 80;	// maximum is 90 --number of concurrent processes
 	private static int ClientId = 10000; // It could be 10000, 20000, 30000... and 90000.
 	
-	private static int threadNumber = 0;
+	private static int threadNumber = 1;
 	
 	public MultiClients() {
 		System.out.println("Connecting " + threadNumber++);
@@ -35,7 +35,7 @@ public class MultiClients extends Thread {
 		ProcessBuilder pb = new ProcessBuilder("java","massage.GameClient","localhost","8080", String.valueOf(ClientId));
 		pb.directory(new File(path));
 		Process p = pb.start();
-		ClientId += 100;
+		ClientId += 100;// so the maximum multithread is 100
 		
 		
 		// get output from single process (do not delete!!!!!!) 

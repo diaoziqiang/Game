@@ -5,6 +5,8 @@ package massage;
  * Simplistic Game client.
  */
 
+
+
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
@@ -18,7 +20,6 @@ import java.io.InputStreamReader;
 
 import java.util.Timer;
 import java.util.TimerTask;
-//import java.util.concurrent.CountDownLatch;
 
 
 
@@ -26,19 +27,27 @@ public class GameClient  extends Thread{
 
     private static String host;
     private static int port;
-	private static int clientId;
+	public int clientId;
 	
-	private static int threadNum = 10; // maximum is 100
+	private static int threadNum = 35; // maximum is 100, when there are multiprocess
 	
-	public static int activeThreadNum = 0;
-
+	public  static int activeThreadNum = 0;
+	
+	private static int lastClientId = 0;
+	
+	public synchronized static void increaseActiveThreadNum(){
+		++activeThreadNum;
+	}
+	
+	public synchronized static void reduceActiveThreadNum(){
+		--activeThreadNum;
+	}
 
     public void run() {
         EventLoopGroup group = new NioEventLoopGroup();
         try {
         	GameClientInitializer gci = new GameClientInitializer();
-        	gci.ClientId = clientId++;
-        	System.err.println(gci.ClientId);
+        	gci.ClientId = clientId;
             Bootstrap b = new Bootstrap();
             b.group(group)
              .channel(NioSocketChannel.class)
@@ -96,20 +105,23 @@ public class GameClient  extends Thread{
         host = args[0];
         port = Integer.parseInt(args[1]);
        
-        clientId = Integer.parseInt(args[2]);
-        
+        int id = Integer.parseInt(args[2]);
         
         for(int i = 0; i< threadNum; i++){
-        	new GameClient().start();        	
+        	GameClient gc = new GameClient();
+        	gc.clientId = id + i;
+        	gc.start();
+        	lastClientId = gc.clientId;
         }
+        
         
         
     	// stop this program when all threads get 'quite'
 		final Timer timer = new Timer();
 		TimerTask task = new TimerTask() {
 			public void run() {
-				System.out.println(activeThreadNum);
-				if(activeThreadNum == 0){
+				System.out.println(lastClientId + ": " + activeThreadNum);
+				if(activeThreadNum <= 0){
 					System.exit(0);
 				}
 			}

@@ -5,8 +5,8 @@ package massage;
  * Handles a server-side channel.
  */
 
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelFutureListener;
+//import io.netty.channel.ChannelFuture;
+//import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
@@ -44,13 +44,13 @@ public class GameServerHandler extends SimpleChannelInboundHandler<String> {
 		RequestSorter rs = new RequestSorter();
 		String req = rs.checkCommand(request);
 
-		String response = rs.setResponse(req);
+//		String response = rs.setResponse(req);
 
 		// We do not need to write a ChannelBuffer here.
 		// We know the encoder inserted at TelnetPipelineFactory will do the
 		// conversion.
 		
-		ctx.write(response);
+//		ctx.write(response); // do not use it, when there are multiprocess
 
 //		System.out.println(response);
 		
@@ -58,8 +58,9 @@ public class GameServerHandler extends SimpleChannelInboundHandler<String> {
 		// Close the connection after sending 'Have a good day!'
 		// if the client has sent 'quit'.
 		if ("quit".equals(req)) {
-			 ChannelFuture future = ctx.write("quit\r\n");
-			 future.addListener(ChannelFutureListener.CLOSE);
+//			 ChannelFuture future = ctx.write("quit\r\n");
+//			 future.addListener(ChannelFutureListener.CLOSE);
+			 ctx.close();
 		}
 		
 	}
@@ -72,6 +73,11 @@ public class GameServerHandler extends SimpleChannelInboundHandler<String> {
 			ctx.close();
 		}
 	}
+	
+	@Override
+    public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+		ctx.close();
+    }
 	
 
 	@Override

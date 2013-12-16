@@ -22,7 +22,7 @@ public class GameClientHandler extends SimpleChannelInboundHandler<String> {
 	private static final Logger logger = Logger
 			.getLogger(GameClientHandler.class.getName());
 
-	private int cmsgNum = 50; // the total number of sent requests will be
+	private int cmsgNum = 100; // the total number of sent requests will be
 										// cmsgNum + 2
 	
 	private int MagTransFrequ = 2000; // massage transmission frequency
@@ -31,8 +31,6 @@ public class GameClientHandler extends SimpleChannelInboundHandler<String> {
 											// the massage
 	private int count = 0;
 	
-	private boolean getQuitMag = false;
-
 	@Override
 	public void channelActive(final ChannelHandlerContext ctx) throws Exception {
 		// Send greeting for a new connection.
@@ -61,23 +59,15 @@ public class GameClientHandler extends SimpleChannelInboundHandler<String> {
         			public void run() {
         				if(count == 0){
         					cmsg = "start";
-        					GameClient.activeThreadNum++;
-        					count++;
+        					GameClient.increaseActiveThreadNum();
         				}else if (count == cmsgNum + 1) {
         					cmsg = "quit";
-        					
-        					// check if get the "quit" from server
-        					// it might cause massage missing
-        					MagTransFrequ = 10000;//reduce the frequency to 10s 
-//        					if(getQuitMag){
-            					timer.cancel();
-            					System.out.println("from Handle: There should no massage from " + ClientId);
-//        					}
-        					
+            				timer.cancel();            			
         				} else{
         					cmsg = generateInputMassage();
-        					count++;
         				}
+
+    					count++;
         					
         				// send massages to server
         				ctx.writeAndFlush(ClientId + ":" + cmsg + "\r\n");
@@ -109,16 +99,14 @@ public class GameClientHandler extends SimpleChannelInboundHandler<String> {
 	protected void channelRead0(ChannelHandlerContext ctx, String msg)
 			throws Exception {
 		System.err.println(msg);
-
-		if ("quit".equals(msg)) {
-			getQuitMag = true;
-			ctx.close();
-			
-			// to inform main thread that this thread can be stopped
-			GameClient.activeThreadNum--;
-//			System.exit(0);// Problem while using multithreading here
-		}
 	}
+	
+	@Override
+    public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+		GameClient.reduceActiveThreadNum();
+		System.out.println(ClientId + " is closed.");
+		ctx.close();
+    }
 
 	@Override
 	public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause)
@@ -126,6 +114,6 @@ public class GameClientHandler extends SimpleChannelInboundHandler<String> {
 		logger.log(Level.WARNING, "Unexpected exception from downstream.",
 				cause);
 		ctx.close();
-		System.exit(0);
+//		System.exit(0);
 	}
 }

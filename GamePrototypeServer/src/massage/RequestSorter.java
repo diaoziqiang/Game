@@ -96,10 +96,10 @@ public class RequestSorter {
                     response = "Sir, the format of your command is invalid.\r\n";
                     break;
             case "OK":
-                    response = "Yes, sir! \r\n";
+                    response = "Yes, sir!\r\n";
                     break;
             case "quit":
-                    response = "Have a good day! \r\n";
+                    response = "Have a good day!\r\n";
                     break;
             default:
                     response = "";

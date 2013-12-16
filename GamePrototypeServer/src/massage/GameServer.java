@@ -67,7 +67,7 @@ public class GameServer {
 		} finally {
 			bossGroup.shutdownGracefully();
 			workerGroup.shutdownGracefully();
-			cp.dispose();//close the connection with H2
+//			cp.dispose();//close the connection with H2
 		}
 	}
 
